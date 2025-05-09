@@ -148,13 +148,55 @@ freq(data_1982$vs9)
 
 data_1982 <- data_1982 %>%
   mutate(
-    Income = case_when(
-      vs9 == 15 ~ NA_character_,
-      vs9 == 14 ~ "0",
-      TRUE ~ as.character(vs9)
-    ),
-    Income = factor(Income, levels = as.character(0:13)),
-    Income = relevel(Income, ref = "1")
+    vs9 = as.character(vs9),
+    vs9 = ifelse(vs9 == "15", NA, vs9),
+    IncomeMidpoint = case_when(
+      vs9 == "1"  ~  750,
+      vs9 == "2"  ~ 1750,
+      vs9 == "3"  ~ 2250,
+      vs9 == "4"  ~ 2750,
+      vs9 == "5"  ~ 3500,
+      vs9 == "6"  ~ 4500,
+      vs9 == "7"  ~ 5500,
+      vs9 == "8"  ~ 7000,
+      vs9 == "9"  ~ 9000,
+      vs9 == "10" ~ 12500,
+      vs9 == "11" ~ 17500,
+      vs9 == "12" ~ 35000,
+      vs9 == "13" ~ 50000,
+      vs9 == "14" ~ 0,
+      TRUE ~ NA_real_
+    )
+  ) %>%
+  mutate(
+    IncomeQuintiles = ntile(IncomeMidpoint, 5),
+    IncomeQuintiles = factor(IncomeQuintiles, levels = 1:5, labels = c("Q1", "Q2", "Q3", "Q4", "Q5"))
   )
 
-freq(data_1982$Income)
+freq(data_1982$IncomeQuintiles)
+
+
+data_1989 <- data_1989 %>%
+  mutate(
+    rs29 = as.character(rs29),
+    rs29 = ifelse(rs29 == "0", NA, rs29),
+    IncomeMidpoint = case_when(
+      rs29 == "1"  ~ 1000,
+      rs29 == "2"  ~ 2500,
+      rs29 == "3"  ~ 4000,
+      rs29 == "4"  ~ 6250,
+      rs29 == "5"  ~ 8750,
+      rs29 == "6"  ~ 12500,
+      rs29 == "7"  ~ 17500,
+      rs29 == "8"  ~ 25000,
+      rs29 == "9"  ~ 35000,
+      rs29 == "10" ~ 40000,
+      TRUE ~ NA_real_
+    )
+  ) %>%
+  mutate(
+    IncomeQuintiles = ntile(IncomeMidpoint, 5),
+    IncomeQuintiles = factor(IncomeQuintiles, levels = 1:5, labels = c("Q1", "Q2", "Q3", "Q4", "Q5"))
+  )
+
+freq(data_1989$IncomeQuintiles)
