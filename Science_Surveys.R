@@ -22,6 +22,7 @@ library(flexmix)
 library(psych)
 library(ltm)
 library(scales)
+library(stargazer)
 
 #I) Dataset
 
@@ -200,3 +201,29 @@ data_1989 <- data_1989 %>%
   )
 
 freq(data_1989$IncomeQuintiles)
+
+# Departement 
+
+freq(data_1982$dep)
+freq(data_1989$dep)
+
+#IV) Pooled dataset
+
+data <- bind_rows(
+  data_1982 %>%
+    mutate(Year = factor(1982)) %>%
+    dplyr::select(Trust, Approval, Green, Women, Age, Diploma, PCS, IncomeQuintiles, Year),
+  
+  data_1989 %>%
+    mutate(Year = factor(1989)) %>%
+    dplyr::select(Trust, Approval, Green, Women, Age, Diploma, PCS, IncomeQuintiles, Year)
+)
+
+ols <- lm(Trust ~ Women + Age + Diploma + PCS + IncomeQuintiles + Year, data = data)
+stargazer(ols, type = "text")
+
+stargazer(ols,
+  type = "text",
+  se = list(sqrt(diag(vcovHC(ols, type = "HC1")))),
+  title = "Heteroskedasticity-Robust OLS Regression",
+  digits = 3)
