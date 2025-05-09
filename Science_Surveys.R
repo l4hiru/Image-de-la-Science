@@ -29,6 +29,8 @@ library(stargazer)
 data_1982 <- read_sas("1982/fr.cdsp.ddi.science1982.sas7bdat")
 data_1989 <- read_sas("1989/fr.cdsp.ddi.science1989.sas7bdat")
 
+exposure <- read_delim("Exposure Data.csv", delim = ";")
+
 #II) Outcome variables 
 
 #A) Trust in researchers for the construction of a nuclear power plant
@@ -222,8 +224,70 @@ data <- bind_rows(
 ols <- lm(Trust ~ Women + Age + Diploma + PCS + IncomeQuintiles + Year, data = data)
 stargazer(ols, type = "text")
 
+ols2 <- lm(Approval ~ Women + Age + Diploma + PCS + IncomeQuintiles + Year, data = data)
+stargazer(ols2, type = "text")
+
+ols3 <- lm(Green ~ Women + Age + Diploma + PCS + IncomeQuintiles + Year, data = data)
+stargazer(ols3, type = "text")
+
 stargazer(ols,
   type = "text",
   se = list(sqrt(diag(vcovHC(ols, type = "HC1")))),
   title = "Heteroskedasticity-Robust OLS Regression",
   digits = 3)
+
+stargazer(ols2,
+  type = "text",
+  se = list(sqrt(diag(vcovHC(ols2, type = "HC1")))),
+  title = "Heteroskedasticity-Robust OLS Regression",
+  digits = 3)
+
+stargazer(ols3,
+  type = "text",
+  se = list(sqrt(diag(vcovHC(ols2, type = "HC1")))),
+  title = "Heteroskedasticity-Robust OLS Regression",
+  digits = 3)
+
+#V) Departemental Identification Strategy
+
+data <- bind_rows(
+  data_1982 %>%
+    mutate(Year = factor(1982)) %>%
+    dplyr::select(Trust, Approval, Green, Women, Age, Diploma, PCS, IncomeQuintiles, dep, Year),
+  
+  data_1989 %>%
+    mutate(Year = factor(1989)) %>%
+    dplyr::select(Trust, Approval, Green, Women, Age, Diploma, PCS, IncomeQuintiles, dep, Year)
+)
+
+data$code_dep <- gsub("·", "", data$dep)  # Remove separators
+data$code_dep <- ifelse(nchar(data$dep) == 1, 
+                               paste0("0", data$dep), 
+                               data$dep)
+
+exposure$code_dep <- gsub("·", "", exposure$code_dep)  # Remove separators
+exposure$code_dep <- ifelse(nchar(exposure$code_dep) == 1, 
+                               paste0("0", exposure$code_dep), 
+                               exposure$code_dep)
+
+data <- data %>%
+  left_join(
+    exposure %>% dplyr::select(code_dep, departement, Cesium, Iodine),
+    by = "code_dep"
+  )
+
+data <- data %>%
+  mutate(Post = ifelse(Year == 1989, 1, 0))
+
+freq(data$Cesium)
+freq(data$Iodine)
+
+#VI) Main regression analysis
+
+didreg1 = lm(Trust ~ Iodine * Post + Women + Age + Diploma + PCS + IncomeQuintiles, data = data)
+didreg2 = lm(Approval ~ Cesium * Post + Women + Age + Diploma + PCS + IncomeQuintiles, data = data)
+didreg3 = lm(Green ~ Cesium * Post + Women + Age + Diploma + PCS + IncomeQuintiles, data = data)
+
+stargazer(didreg1, type = "text")
+stargazer(didreg2, type = "text")
+stargazer(didreg3, type = "text")
