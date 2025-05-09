@@ -95,6 +95,66 @@ data_1982 <- data_1982 %>%
     vs7 %in% c(8, 9, 10, 11, 12) ~ "High",
     TRUE ~ NA_character_
   ),
-  Diploma = factor(Diploma, levels = c("Low", "Medium", "High")))
+  Diploma = factor(Diploma, levels = c("Low", "Medium", "High"))) # Un peu trop de High, vérifier classification.
 
 freq(data_1982$Diploma)
+
+data_1989 <- data_1989 %>%
+  mutate(Diploma = case_when(
+    rs3a1 %in% c(1, 2) ~ "Low",
+    rs3a1 %in% c(3, 4, 5) ~ "Medium",
+    rs3a1 %in% c(6, 7, 8, 9) ~ "High",
+    TRUE ~ NA_character_
+  ),
+  Diploma = factor(Diploma, levels = c("Low", "Medium", "High")))
+
+freq(data_1989$Diploma)
+
+# Occupation 
+
+data_1982 <- data_1982 %>%
+  mutate(Occupation = case_when(
+    vs3 %in% c(1, 2) ~ "Farmer",
+    vs3 %in% c(3, 4) ~ "Craftmen",
+    vs3 %in% c(5, 6) ~ "Executive",
+    vs3 %in% c(7, 8) ~ "PI",
+    vs3 == 9 ~ "Employee",
+    vs3 %in% c(10, 11, 12) ~ "Worker",
+    vs3 == 13 ~ "Inactive"
+  ),
+  PCS = relevel(factor(Occupation), ref = "Worker"))
+
+freq(data_1982$Occupation)
+
+freq(data_1989$rs9a1)
+
+data_1989 <- data_1989 %>%
+  mutate(Occupation = case_when(
+    rs9a1 %in% c(151) ~ "Farmer",
+    rs9a1 %in% c(253, 254, 255) ~ "Craftmen",
+    rs9a1 %in% c(356, 357) ~ "Executive",
+    rs9a1 %in% c(458, 460) ~ "PI",
+    rs9a1 %in% c(559, 563) ~ "Employee",
+    rs9a1 %in% c(652, 661, 662) ~ "Worker",
+    rs9a1 %in% c(88) ~ "Inactive"
+  ),
+  PCS = relevel(factor(Occupation), ref = "Worker"))
+
+freq(data_1989$Occupation)
+
+# Income 
+
+freq(data_1982$vs9)
+
+data_1982 <- data_1982 %>%
+  mutate(
+    Income = case_when(
+      vs9 == 15 ~ NA_character_,
+      vs9 == 14 ~ "0",
+      TRUE ~ as.character(vs9)
+    ),
+    Income = factor(Income, levels = as.character(0:13)),
+    Income = relevel(Income, ref = "1")
+  )
+
+freq(data_1982$Income)
